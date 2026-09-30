@@ -1,0 +1,310 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+
+/* =========================
+   TOP NAVIGATION
+========================= */
+
+.top-section {
+    width: 1440px;
+    height: 152px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 38px 96px;
+}
+
+
+.logo {
+    width: 158px;
+    height: 76px;
+
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+
+.menu {
+    width: 604px;
+    height: 37px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 40px;
+}
+
+
+.menu a {
+    text-decoration: none;
+    color: #000;
+
+    font-size: 14px;
+    line-height: 17px;
+
+    white-space: nowrap;
+}
+
+
+.menu .home {
+    width: 68px;
+    height: 37px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 5px;
+}
+
+
+.menu a:nth-child(2) {
+    width: 35px;
+    height: 37px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+}
+
+
+.menu a:nth-child(3) {
+    width: 67px;
+    height: 17px;
+}
+
+
+.menu a:nth-child(4) {
+    width: 55px;
+    height: 17px;
+}
+
+
+.menu a:nth-child(5) {
+    width: 125px;
+    height: 17px;
+}
+
+
+.menu a:nth-child(6) {
+    width: 54px;
+    height: 17px;
+}
+
+
+/* =========================
+   HERO HEADER
+========================= */
+
+.hero-header {
+    width: 1440px;
+    height: 630px;
+    /* color:#FFFFFF; */
+    opacity: 1;
+}
+
+
+/* =========================
+   HERO
+========================= */
+
+.hero {
+    width: 1439.38px;
+    height: 630px;
+
+    position: relative;
+    margin-left: 0.31px;
+}
+
+
+/* =========================
+   HERO CONTENT
+========================= */
+
+.hero-content {
+    width: 721.69px;
+    height: 405.17px;
+
+    position: absolute;
+
+    top: 125px;
+    left: 97.96px;
+}
+
+
+/* =========================
+   INTRO
+========================= */
+
+.hero-intro {
+    width: 721.69px;
+    height: 160px;
+}
+
+
+.hero-intro h1 {
+    font-family: Inter, sans-serif;
+    font-weight: 700;
+
+    font-size: 48px;
+    line-height: 124%;
+    letter-spacing: 0;
+
+    margin: 0;
+}
+
+
+.hero-intro h2 {
+    font-family: Inter, sans-serif;
+    font-weight: 700;
+
+    font-size: 48px;
+    line-height: 124%;
+    letter-spacing: 0;
+
+    margin: 0;
+}
+
+
+/* =========================
+   HERO TEXT
+========================= */
+
+.hero-text {
+    width: 600.84px;
+    height: 118.72px;
+
+    margin-top: 23.93px;
+}
+
+
+.hero-text p {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0;
+
+    text-transform: capitalize;
+
+    margin: 0;
+}
+
+
+/* =========================
+   HIRE ME BUTTON
+========================= */
+
+.hire-button {
+    width: 218.23px;
+    height: 68.8px;
+
+    margin-top: 33.72px;
+
+    border: none;
+    border-radius: 5px;
+
+    background: #ffb400;
+    color: #000;
+
+    font-family: Inter, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   OTHER 3 HERO ELEMENTS
+========================= */
+
+.hero-element-1 {
+    position: absolute;
+}
+
+.hero-element-2 {
+    position: absolute;
+}
+
+.hero-element-3 {
+    position: absolute;
+}
+.hero-image {
+    position: absolute;
+
+    width: 808.0056px;
+    height: 550.4069px;
+
+    top: 79.59px;
+    left: 631.68px;
+
+    opacity: 1;
+
+    object-fit: contain;
+}
+.projects-section {
+    width: 1244.3086px;
+    height: 1055.1575px;
+
+    margin-left: 97.85px;
+    margin-top: 60px;
+
+    display: flex;
+    gap: 45px;
+}
+
+.projects-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.Recommendations-section {
+    width: 1440px;
+    height: 519.17px;
+    margin-top: 45px;
+
+    display: flex;
+    gap: 45px;
+}
+
+.Recommendations-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.Contact-section {
+    width: 1440px;
+    height: 759.17px;
+    margin-top: 45px;
+
+    display: flex;
+    gap: 45px;
+}
+
+.Contact-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}

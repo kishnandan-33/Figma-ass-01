@@ -1,8 +1,7 @@
-/* ---------- Navigation menu + active section ---------- */
 (function () {
     const menuButton = document.querySelector(".mobile-navigation-toggle");
     const navigation = document.querySelector(".navigation-menu");
-    const navigationLinks = document.querySelectorAll(".navigation-item a");
+    const navigationLinks = document.querySelectorAll(".navigation-item");
 
     if (!menuButton || !navigation) return;
 
@@ -31,11 +30,8 @@
         });
     }
 
-    // Active link changes according to the section visible on screen
     function refreshNavigation() {
-        const scrollMarker =
-            window.scrollY + window.innerHeight * 0.45;
-
+        const scrollMarker = window.scrollY + window.innerHeight * 0.45;
         let activeSection = "home";
 
         pageSections.forEach((section) => {
@@ -51,17 +47,12 @@
         highlightNavigation(activeSection);
     }
 
-    window.addEventListener("scroll", refreshNavigation, {
-        passive: true
-    });
-
+    window.addEventListener("scroll", refreshNavigation, { passive: true });
     window.addEventListener("resize", refreshNavigation);
 
     refreshNavigation();
 })();
 
-
-/* ---------- Recommendation slider ---------- */
 (function () {
     const slider = document.querySelector(".recommendation-slider");
 
@@ -75,7 +66,6 @@
     if (!sliderWindow || !sliderTrack || !controls) return;
 
     const autoplayDelay = 5000;
-
     let currentIndex = 2;
     let autoplayTimer;
 
@@ -84,10 +74,7 @@
 
         button.type = "button";
         button.className = "carousel-dot";
-        button.setAttribute(
-            "aria-label",
-            "Show recommendation " + (position + 1)
-        );
+        button.setAttribute("aria-label", "Show recommendation " + (position + 1));
 
         button.addEventListener("click", () => {
             moveTo(position);
@@ -100,49 +87,26 @@
     });
 
     function moveTo(position) {
-        currentIndex =
-            (position + recommendationCards.length) %
-            recommendationCards.length;
+        currentIndex = (position + recommendationCards.length) % recommendationCards.length;
 
         const activeCard = recommendationCards[currentIndex];
+        const trackPosition = sliderTrack.getBoundingClientRect().left;
+        const cardCenter = activeCard.getBoundingClientRect().left - trackPosition + activeCard.offsetWidth / 2;
+        const movement = sliderWindow.clientWidth / 2 - cardCenter;
 
-        const trackPosition =
-            sliderTrack.getBoundingClientRect().left;
-
-        const cardCenter =
-            activeCard.getBoundingClientRect().left -
-            trackPosition +
-            activeCard.offsetWidth / 2;
-
-        const movement =
-            sliderWindow.clientWidth / 2 - cardCenter;
-
-        sliderTrack.style.setProperty(
-            "--offset",
-            movement + "px"
-        );
+        sliderTrack.style.setProperty("--offset", movement + "px");
 
         recommendationCards.forEach((card, number) => {
-            card.classList.toggle(
-                "is-active",
-                number === currentIndex
-            );
+            card.classList.toggle("is-active", number === currentIndex);
         });
 
         navigationDots.forEach((dot, number) => {
-            dot.classList.toggle(
-                "is-active",
-                number === currentIndex
-            );
+            dot.classList.toggle("is-active", number === currentIndex);
         });
     }
 
     function startAutoplay() {
-        if (
-            window.matchMedia(
-                "(prefers-reduced-motion: reduce)"
-            ).matches
-        ) {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
             return;
         }
 
@@ -162,43 +126,27 @@
 
     slider.addEventListener("mouseenter", stopAutoplay);
     slider.addEventListener("mouseleave", startAutoplay);
-
     slider.addEventListener("focusin", stopAutoplay);
     slider.addEventListener("focusout", startAutoplay);
 
-
-    /* ---------- Touch swipe ---------- */
-
     let touchStart = null;
 
-    sliderWindow.addEventListener(
-        "touchstart",
-        (event) => {
-            touchStart = event.touches[0].clientX;
-        },
-        { passive: true }
-    );
+    sliderWindow.addEventListener("touchstart", (event) => {
+        touchStart = event.touches[0].clientX;
+    }, { passive: true });
 
     sliderWindow.addEventListener("touchend", (event) => {
         if (touchStart === null) return;
 
-        const touchDistance =
-            event.changedTouches[0].clientX - touchStart;
+        const touchDistance = event.changedTouches[0].clientX - touchStart;
 
         if (Math.abs(touchDistance) > 40) {
-            moveTo(
-                currentIndex +
-                (touchDistance < 0 ? 1 : -1)
-            );
-
+            moveTo(currentIndex + (touchDistance < 0 ? 1 : -1));
             restartAutoplay();
         }
 
         touchStart = null;
     });
-
-
-    /* ---------- Slider resize ---------- */
 
     window.addEventListener("resize", () => {
         moveTo(currentIndex);
@@ -208,11 +156,7 @@
         moveTo(currentIndex);
     });
 
-
-    /* ---------- Initial slider position ---------- */
-
     sliderTrack.style.transition = "none";
-
     moveTo(currentIndex);
 
     requestAnimationFrame(() => {
@@ -222,8 +166,6 @@
     startAutoplay();
 })();
 
-
-/* ---------- Contact form validation ---------- */
 (function () {
     const contactForm = document.getElementById("contact-form");
 
@@ -238,66 +180,44 @@
     const emailRule = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
     function showValidationError(field, message) {
-        const errorMessage = document.getElementById(
-            field.id + "-error"
-        );
+        const errorMessage = document.getElementById(field.id + "-error");
 
         if (errorMessage) {
             errorMessage.textContent = message;
         }
 
-        field.classList.toggle(
-            "is-invalid",
-            Boolean(message)
-        );
-
-        field.setAttribute(
-            "aria-invalid",
-            message ? "true" : "false"
-        );
+        field.classList.toggle("is-invalid", Boolean(message));
+        field.setAttribute("aria-invalid", message ? "true" : "false");
     }
 
-
     function checkName() {
-        const validName =
-            nameField.value.trim().length >= 2;
+        const validName = nameField.value.trim().length >= 2;
 
         showValidationError(
             nameField,
-            validName
-                ? ""
-                : "Please enter your full name."
+            validName ? "" : "Please enter your full name."
         );
 
         return validName;
     }
 
-
     function checkEmail() {
-        const enteredEmail =
-            emailField.value.trim();
-
+        const enteredEmail = emailField.value.trim();
         let errorText = "";
 
         if (!enteredEmail) {
             errorText = "Please enter your email.";
         } else if (!emailRule.test(enteredEmail)) {
-            errorText =
-                "Please enter a valid email address.";
+            errorText = "Please enter a valid email address.";
         }
 
-        showValidationError(
-            emailField,
-            errorText
-        );
+        showValidationError(emailField, errorText);
 
         return !errorText;
     }
 
-
     nameField.addEventListener("blur", checkName);
     emailField.addEventListener("blur", checkEmail);
-
 
     contactForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -317,9 +237,7 @@
             return;
         }
 
-        formStatus.textContent =
-            "Thanks! Your message has been sent.";
-
+        formStatus.textContent = "Thanks! Your message has been sent.";
         contactForm.reset();
     });
 })();

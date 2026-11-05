@@ -1,285 +1,150 @@
-'use strict';
+/* ---------- Mobile menu + active link ---------- */
+(function () {
+    const toggle = document.querySelector(".nav__toggle");
+    const menu = document.querySelector(".nav__menu");
+    const links = document.querySelectorAll(".nav__link");
 
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-/* ==========================================================================
-   Mobile navigation + active link
-   ========================================================================== */
-function initNav() {
-  const toggle = document.querySelector('.nav-toggle');
-  const menu = document.getElementById('nav-menu');
-  const links = [...menu.querySelectorAll('.nav-link')];
-
-  const setOpen = (open) => {
-    toggle.setAttribute('aria-expanded', String(open));
-    menu.classList.toggle('is-open', open);
-  };
-
-  toggle.addEventListener('click', () => {
-    setOpen(toggle.getAttribute('aria-expanded') !== 'true');
-  });
-
-  menu.addEventListener('click', (e) => {
-    if (e.target.closest('.nav-link')) setOpen(false);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-      setOpen(false);
-      toggle.focus();
-    }
-  });
-
-  const setActive = (id) => {
-    // several labels can share a target; highlight the one named after the section
-    const match =
-      links.find((l) => l.getAttribute('href') === `#${id}` && l.textContent.trim().toLowerCase() === id) ||
-      links.find((l) => l.getAttribute('href') === `#${id}`);
-    if (!match) return;
-    links.forEach((l) => {
-      l.classList.toggle('is-active', l === match);
-      if (l === match) l.setAttribute('aria-current', 'true');
-      else l.removeAttribute('aria-current');
+    toggle.addEventListener("click", () => {
+        const open = menu.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", String(open));
     });
-  };
 
-  const sections = ['home', 'projects', 'recommendations', 'contact']
-    .map((id) => document.getElementById(id))
-    .filter(Boolean);
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) setActive(entry.target.id);
-      });
-    },
-    { rootMargin: '-45% 0px -50% 0px' }
-  );
-  sections.forEach((s) => observer.observe(s));
-}
-
-/* ==========================================================================
-   Testimonial carousel — the active card is centred in the viewport,
-   cloned cards on each side keep the edges filled while looping.
-   ========================================================================== */
-function initCarousel() {
-  const viewport = document.querySelector('.reviews-viewport');
-  const track = document.querySelector('.reviews-track');
-  const dots = [...document.querySelectorAll('.slider-dot')];
-  if (!viewport || !track || !dots.length) return;
-
-  const slides = [...track.children];
-  const total = slides.length;
-  // a clone sits in the centre mid-wrap; it needs a full and a partial card on each side
-  const CLONES = 3;
-  const AUTOPLAY_MS = 5000;
-
-  const makeClone = (slide) => {
-    const clone = slide.cloneNode(true);
-    clone.setAttribute('aria-hidden', 'true');
-    clone.inert = true;
-    clone.classList.add('is-clone');
-    return clone;
-  };
-  slides.slice(-CLONES).reverse().forEach((s) => track.prepend(makeClone(s)));
-  slides.slice(0, CLONES).forEach((s) => track.append(makeClone(s)));
-
-  let currentIndex = dots.findIndex((d) => d.classList.contains('active'));
-  if (currentIndex < 0) currentIndex = 0;
-  let timer = null;
-  let isAnimating = false;
-
-  const offsetFor = (index) => {
-    const card = track.children[index + CLONES];
-    return viewport.clientWidth / 2 - (card.offsetLeft + card.offsetWidth / 2);
-  };
-
-  const render = (index, animate = true) => {
-    track.classList.toggle('no-transition', !animate);
-    track.style.transform = `translateX(${offsetFor(index)}px)`;
-    const real = ((index % total) + total) % total;
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('active', i === real);
-      if (i === real) dot.setAttribute('aria-current', 'true');
-      else dot.removeAttribute('aria-current');
+    menu.addEventListener("click", (e) => {
+        if (e.target.closest("a")) {
+            menu.classList.remove("is-open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
     });
-    slides.forEach((slide, i) => {
-      slide.setAttribute('aria-hidden', String(i !== real));
+
+    const sections = ["home", "projects", "recommendations", "contact"]
+        .map((id) => document.getElementById(id))
+        .filter(Boolean);
+
+    function setActive(id) {
+        links.forEach((link) => {
+            link.classList.toggle("is-active", link.getAttribute("href") === "#" + id);
+        });
+    }
+
+    // the active link is the last section whose top has passed 45% of the screen
+    function updateActiveLink() {
+        const marker = window.scrollY + window.innerHeight * 0.45;
+        let current = "home";
+        sections.forEach((section) => {
+            if (section.offsetTop <= marker) current = section.id;
+        });
+        if (window.scrollY < 10) current = "home";
+        setActive(current);
+    }
+
+    window.addEventListener("scroll", updateActiveLink, { passive: true });
+    window.addEventListener("resize", updateActiveLink);
+    updateActiveLink();
+})();
+
+/* ---------- Recommendations carousel ---------- */
+(function () {
+    const root = document.querySelector(".carousel");
+    const viewport = root.querySelector(".carousel__viewport");
+    const track = root.querySelector(".carousel__track");
+    const slides = Array.from(track.children);
+    const dotsWrap = root.querySelector(".carousel__dots");
+    const AUTOPLAY_MS = 5000;
+
+    let index = 2;
+    let timer;
+
+    const dots = slides.map((_, i) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "carousel__dot";
+        dot.setAttribute("aria-label", "Show recommendation " + (i + 1));
+        dot.addEventListener("click", () => { goTo(i); restart(); });
+        dotsWrap.appendChild(dot);
+        return dot;
     });
-  };
 
-  let settleTimer;
-
-  function updateSlide(index, animate = true) {
-    if (isAnimating && animate) return;
-    currentIndex = index;
-    isAnimating = animate && !prefersReducedMotion.matches;
-    render(index, isAnimating);
-    if (isAnimating) {
-      // transitionend never fires if nothing moved or the tab is in the background
-      settleTimer = setTimeout(normalise, 700);
-    } else {
-      normalise();
+    function goTo(i) {
+        index = (i + slides.length) % slides.length;
+        const slide = slides[index];
+        const trackLeft = track.getBoundingClientRect().left;
+        const centre = slide.getBoundingClientRect().left - trackLeft + slide.offsetWidth / 2;
+        track.style.setProperty("--offset", viewport.clientWidth / 2 - centre + "px");
+        slides.forEach((s, n) => s.classList.toggle("is-active", n === index));
+        dots.forEach((d, n) => d.classList.toggle("is-active", n === index));
     }
-  }
 
-  // after sliding onto a clone, jump to the matching real slide without animating
-  function normalise() {
-    clearTimeout(settleTimer);
-    isAnimating = false;
-    if (currentIndex < 0 || currentIndex >= total) {
-      currentIndex = ((currentIndex % total) + total) % total;
-      render(currentIndex, false);
-      void track.offsetWidth; // flush so the next move animates again
+    function start() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        timer = setInterval(() => goTo(index + 1), AUTOPLAY_MS);
     }
-  }
+    function stop() { clearInterval(timer); }
+    function restart() { stop(); start(); }
 
-  track.addEventListener('transitionend', (e) => {
-    if (e.target === track) normalise();
-  });
+    root.addEventListener("mouseenter", stop);
+    root.addEventListener("mouseleave", start);
+    root.addEventListener("focusin", stop);
+    root.addEventListener("focusout", start);
 
-  const next = () => updateSlide(currentIndex + 1);
-  const prev = () => updateSlide(currentIndex - 1);
-
-  dots.forEach((dot, index) => {
-    dot.addEventListener('click', () => {
-      updateSlide(index);
-      restart();
+    let startX = null;
+    viewport.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    viewport.addEventListener("touchend", (e) => {
+        if (startX === null) return;
+        const delta = e.changedTouches[0].clientX - startX;
+        if (Math.abs(delta) > 40) { goTo(index + (delta < 0 ? 1 : -1)); restart(); }
+        startX = null;
     });
-  });
 
-  viewport.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') { next(); restart(); }
-    if (e.key === 'ArrowLeft') { prev(); restart(); }
-  });
+    window.addEventListener("resize", () => goTo(index));
+    window.addEventListener("load", () => goTo(index));
 
-  // swipe / drag
-  let startX = null;
-  viewport.addEventListener('pointerdown', (e) => { startX = e.clientX; });
-  viewport.addEventListener('pointerup', (e) => {
-    if (startX === null) return;
-    const dx = e.clientX - startX;
-    startX = null;
-    if (Math.abs(dx) > 50) {
-      if (dx < 0) next(); else prev();
-      restart();
-    }
-  });
-  viewport.addEventListener('pointercancel', () => { startX = null; });
-
-  // autoplay, paused while the user is hovering, focused inside, or the tab is hidden
-  const carousel = viewport.closest('.reviews');
-  let hovered = false;
-  let focused = false;
-
-  const stop = () => {
-    clearInterval(timer);
-    timer = null;
-  };
-  const start = () => {
-    if (prefersReducedMotion.matches || timer || hovered || focused || document.hidden) return;
-    timer = setInterval(next, AUTOPLAY_MS);
-  };
-  function restart() {
-    stop();
+    track.style.transition = "none";
+    goTo(index);
+    requestAnimationFrame(() => { track.style.transition = ""; });
     start();
-  }
+})();
 
-  carousel.addEventListener('mouseenter', () => { hovered = true; stop(); });
-  carousel.addEventListener('mouseleave', () => { hovered = false; start(); });
-  carousel.addEventListener('focusin', () => { focused = true; stop(); });
-  carousel.addEventListener('focusout', (e) => {
-    if (carousel.contains(e.relatedTarget)) return;
-    focused = false;
-    start();
-  });
-  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+/* ---------- Contact form validation (nothing is stored) ---------- */
+(function () {
+    const form = document.getElementById("contact-form");
+    const name = form.querySelector("#name");
+    const email = form.querySelector("#email");
+    const status = document.getElementById("form-status");
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-  let resizeFrame;
-  window.addEventListener('resize', () => {
-    cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(() => render(currentIndex, false));
-  });
-
-  render(currentIndex, false);
-  // fonts change card heights/widths slightly; re-centre once they are in
-  document.fonts?.ready.then(() => render(currentIndex, false));
-  start();
-}
-
-/* ==========================================================================
-   Contact form validation — the form is not connected to a message service
-   ========================================================================== */
-function initContactForm() {
-  const contactForm = document.getElementById('contactForm');
-  if (!contactForm) return;
-
-  const status = contactForm.querySelector('.form-status');
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-  const rules = {
-    fullName: (v) => (v ? '' : 'Please enter your full name.'),
-    email: (v) => {
-      if (!v) return 'Please enter your email address.';
-      return EMAIL_RE.test(v) ? '' : 'Please enter a valid email, like name@example.com.';
-    },
-  };
-
-  const validateField = (input) => {
-    const message = rules[input.id](input.value.trim());
-    const error = document.getElementById(`${input.id}-error`);
-    error.textContent = message;
-    if (message) input.setAttribute('aria-invalid', 'true');
-    else input.removeAttribute('aria-invalid');
-    return !message;
-  };
-
-  Object.keys(rules).forEach((id) => {
-    const input = contactForm.querySelector(`#${id}`);
-    // re-check while typing only after the field has been flagged once
-    input.addEventListener('input', () => {
-      if (input.hasAttribute('aria-invalid')) validateField(input);
-    });
-    input.addEventListener('blur', () => {
-      if (input.value.trim()) validateField(input);
-    });
-  });
-
-  contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    status.textContent = '';
-
-    const fields = Object.keys(rules).map((id) => contactForm.querySelector(`#${id}`));
-    const invalid = fields.filter((input) => !validateField(input));
-    if (invalid.length) {
-      invalid[0].focus();
-      return;
+    function setError(input, message) {
+        const error = document.getElementById(input.id + "-error");
+        error.textContent = message;
+        input.classList.toggle("is-invalid", Boolean(message));
+        input.setAttribute("aria-invalid", message ? "true" : "false");
     }
 
-    status.textContent = 'This demo form is not connected to a message service, so your message was not sent.';
-  });
-}
+    function validateName() {
+        const ok = name.value.trim().length >= 2;
+        setError(name, ok ? "" : "Please enter your full name.");
+        return ok;
+    }
 
-/* ==========================================================================
-   Dev only: open the page with ?overlay to compare against the Figma export
-   ========================================================================== */
-function initOverlay() {
-  if (!new URLSearchParams(location.search).has('overlay')) return;
-  const img = document.createElement('img');
-  img.src = 'design/figma-home.png';
-  img.alt = '';
-  Object.assign(img.style, {
-    position: 'absolute', top: '0', left: '0',
-    width: '1440px', maxWidth: 'none', opacity: '0.5', pointerEvents: 'none', zIndex: '9999',
-  });
-  document.body.style.position = 'relative';
-  document.body.append(img);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'o') img.hidden = !img.hidden;
-  });
-}
+    function validateEmail() {
+        const value = email.value.trim();
+        let message = "";
+        if (!value) message = "Please enter your email.";
+        else if (!emailPattern.test(value)) message = "Please enter a valid email address.";
+        setError(email, message);
+        return !message;
+    }
 
-initNav();
-initCarousel();
-initContactForm();
-initOverlay();
+    name.addEventListener("blur", validateName);
+    email.addEventListener("blur", validateEmail);
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        status.textContent = "";
+        const nameOk = validateName();
+        const emailOk = validateEmail();
+        if (!nameOk) return name.focus();
+        if (!emailOk) return email.focus();
+        status.textContent = "Thanks! Your message has been sent.";
+        form.reset();
+    });
+})();
